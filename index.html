@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Advanced Graphing Calculator with Scales and Borders</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.4.4/math.js"></script>
+</head>
+<body>
+    <h1>Advanced Graphing Calculator with Scales and Borders</h1>
+    <div>
+        <label for="equation">Enter an equation:</label>
+        <input type="text" id="equation" placeholder="e.g., y = sin(x)">
+        <button onclick="plotGraph()">Plot</button>
+        <button onclick="zoomIn()">Zoom In</button>
+        <button onclick="zoomOut()">Zoom Out</button>
+    </div>
+    <div>
+        <canvas id="graph" style="border: 1px solid #ccc;"></canvas>
+    </div>
+
+    <script>
+        let minX = -5;
+        let maxX = 5;
+        let minY = -5;
+        let maxY = 5;
+        const zoomFactor = 1.1;
+
+        function plotGraph() {
+            const equationInput = document.getElementById("equation");
+            const graphCanvas = document.getElementById("graph");
+            const equation = equationInput.value;
+            const graph = graphCanvas.getContext("2d");
+
+            // Clear the canvas
+            graph.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+
+            // Define a range and scale
+            const scaleY = graphCanvas.height / (maxY - minY);
+            const scaleX = graphCanvas.width / (maxX - minX);
+
+            // Draw x and y axes
+            graph.beginPath();
+            graph.moveTo(0, graphCanvas.height / 2);
+            graph.lineTo(graphCanvas.width, graphCanvas.height / 2);
+            graph.moveTo(graphCanvas.width / 2, 0);
+            graph.lineTo(graphCanvas.width / 2, graphCanvas.height);
+            graph.stroke();
+
+            // Add labeled scales on the x and y axes
+            drawAxisLabels(graphCanvas, graph);
+
+            // Use Math.js to safely evaluate the equation
+            const parser = math.parser();
+            parser.evaluate('x = ' + minX);
+            for (let x = minX; x <= maxX; x += 0.1) {
+                parser.evaluate('x = ' + x);
+                try {
+                    const y = parser.evaluate(equation);
+                    const plotX = (x - minX) * scaleX;
+                    const plotY = graphCanvas.height - (y - minY) * scaleY;
+                    graph.fillRect(plotX, plotY, 2, 2);
+                } catch (error) {
+                    // Handle invalid equations or undefined values
+                }
+            }
+        }
+
+        function drawAxisLabels(canvas, context) {
+            context.font = "12px Arial";
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            const xAxisScale = canvas.width / (maxX - minX);
+            const yAxisScale = canvas.height / (maxY - minY);
+
+            // Draw x-axis labels
+            for (let x = Math.ceil(minX); x < maxX; x++) {
+                const plotX = (x - minX) * xAxisScale;
+                context.fillText(x, plotX, canvas.height / 2 + 10);
+            }
+
+            // Draw y-axis labels
+            for (let y = Math.ceil(minY); y < maxY; y++) {
+                const plotY = canvas.height - (y - minY) * yAxisScale;
+                context.fillText(y, canvas.width / 2 - 10, plotY);
+            }
+        }
+
+        function zoomIn() {
+            minX /= zoomFactor;
+            maxX /= zoomFactor;
+            minY /= zoomFactor;
+            maxY /= zoomFactor;
+            plotGraph();
+        }
+
+        function zoomOut() {
+            minX *= zoomFactor;
+            maxX *= zoomFactor;
+            minY *= zoomFactor;
+            maxY *= zoomFactor;
+            plotGraph();
+        }
+    </script>
+</body>
+</html>
